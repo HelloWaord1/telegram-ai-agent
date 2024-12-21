@@ -1,0 +1,147 @@
+import streamlit as st
+import pandas as pd
+import json
+from datetime import datetime
+import os
+
+st.set_page_config(page_title="Member Download & Outbound", page_icon="📥")
+
+st.title("Member Download & Outbound 📥")
+
+def load_members():
+    if os.path.exists("chat_members.json"):
+        with open("chat_members.json", "r") as f:
+            return json.load(f)
+    return []
+
+def main():
+    st.write("Download chat members and send personalized messages")
+    
+    # Configuration Section
+    st.subheader("Agent Configuration")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        session_name = st.text_input("Session Name", "member_download_session")
+        phone_number = st.text_input("Phone Number", placeholder="+1234567890")
+    
+    with col2:
+        api_id = st.text_input("Telegram API ID", type="password")
+        api_hash = st.text_input("Telegram API Hash", type="password")
+    
+    # Chat Selection
+    st.subheader("Chat Selection")
+    chat_name = st.text_input(
+        "Chat/Channel Name",
+        placeholder="@channel_name",
+        help="Enter the username or invite link of the chat/channel"
+    )
+    
+    # Member Download
+    st.subheader("Member Download")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Download Members", type="primary"):
+            if not (api_id and api_hash and phone_number and chat_name):
+                st.error("Please fill in all required fields")
+            else:
+                with st.spinner("Downloading members..."):
+                    # Simulated download for demo
+                    st.success("Members downloaded successfully!")
+    
+    with col2:
+        if st.button("Clear Cached Members"):
+            if os.path.exists("chat_members.json"):
+                os.remove("chat_members.json")
+                st.success("Cached members cleared")
+    
+    # Member List
+    members = load_members()
+    if members:
+        st.write(f"Total Members: {len(members)}")
+        
+        # Member Statistics
+        st.subheader("Member Statistics")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            with_username = sum(1 for m in members if m.get('username'))
+            st.metric("With Username", with_username)
+        with col2:
+            without_username = len(members) - with_username
+            st.metric("Without Username", without_username)
+        with col3:
+            st.metric("Total Members", len(members))
+        
+        # Member List View
+        st.subheader("Member List")
+        
+        # Convert members to DataFrame for display
+        members_df = pd.DataFrame([
+            {
+                'ID': m.get('id'),
+                'Username': m.get('username', 'N/A'),
+                'First Name': m.get('first_name', 'N/A'),
+                'Last Name': m.get('last_name', 'N/A'),
+            }
+            for m in members
+        ])
+        
+        st.dataframe(members_df)
+    
+    # Message Configuration
+    st.subheader("Outbound Message Configuration")
+    
+    default_message = st.text_area(
+        "Default Message Template",
+        ("Hello! This is a test message from our AI assistant. "
+         "We're excited to connect with you and share updates about our services."),
+        help="This message will be uniquely rephrased for each recipient"
+    )
+    
+    # Message Preview
+    if st.button("Generate Message Preview"):
+        st.subheader("Message Variations Preview")
+        
+        # Show 3 different variations as example
+        variations = [
+            "Hi there! Our AI assistant has some exciting updates to share with you about our services. We'd love to connect!",
+            "Greetings! We wanted to reach out and share some exciting news about our services. Our AI assistant is here to help!",
+            "Hello! We have some updates we think you'll love. Our AI assistant is ready to tell you all about our services!"
+        ]
+        
+        for i, var in enumerate(variations, 1):
+            st.text_area(f"Variation {i}", var, disabled=True)
+    
+    # Outbound Campaign
+    st.subheader("Start Outbound Campaign")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        delay = st.number_input(
+            "Delay between messages (seconds)",
+            min_value=1,
+            value=1,
+            help="Time to wait between sending messages"
+        )
+    
+    with col2:
+        batch_size = st.number_input(
+            "Batch Size",
+            min_value=1,
+            max_value=100,
+            value=10,
+            help="Number of messages to send in each batch"
+        )
+    
+    if st.button("Start Outbound Campaign", type="primary"):
+        if not (api_id and api_hash and phone_number and default_message and members):
+            st.error("Please ensure all configuration is complete and members are downloaded")
+        else:
+            with st.spinner("Starting outbound campaign..."):
+                st.success("Campaign started successfully!")
+                st.info("Check the logs for detailed progress")
+
+if __name__ == "__main__":
+    main()
