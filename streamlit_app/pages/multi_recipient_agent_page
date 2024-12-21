@@ -1,0 +1,130 @@
+import streamlit as st
+import pandas as pd
+from datetime import datetime
+
+st.set_page_config(page_title="Multi-Recipient Agent", page_icon="📨")
+
+st.title("Multi-Recipient Agent 📨")
+
+def main():
+    st.write("Configure and manage multi-recipient messaging campaigns")
+    
+    # Configuration Section
+    st.subheader("Agent Configuration")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        session_name = st.text_input("Session Name", "multi_recipient_session")
+        phone_number = st.text_input("Phone Number", placeholder="+1234567890")
+    
+    with col2:
+        api_id = st.text_input("Telegram API ID", type="password")
+        api_hash = st.text_input("Telegram API Hash", type="password")
+    
+    # Recipients Management
+    st.subheader("Recipients Management")
+    
+    # Add recipients
+    recipient_input = st.text_area(
+        "Enter Recipients (one per line)",
+        placeholder="@user1\n@user2\n@user3",
+        help="Enter Telegram usernames or phone numbers, one per line"
+    )
+    
+    if recipient_input:
+        recipients = [r.strip() for r in recipient_input.split('\n') if r.strip()]
+        st.info(f"Total recipients: {len(recipients)}")
+    
+    # Message Configuration
+    st.subheader("Message Configuration")
+    
+    # Welcome message
+    welcome_prompt = st.text_area(
+        "Welcome Message Prompt",
+        ("Generate a unique and friendly welcome message for a new user joining "
+         "an AI-powered chat. Introduce yourself as an AI assistant and encourage "
+         "them to ask questions or discuss any topics they're interested in. "
+         "Keep the message concise but engaging."),
+        height=100
+    )
+    
+    # Follow-up messages
+    st.write("Follow-up Messages")
+    follow_up_1 = st.text_input(
+        "Follow-up Prompt 1",
+        "Create a message that highlights your ability to answer questions on various topics."
+    )
+    follow_up_2 = st.text_input(
+        "Follow-up Prompt 2",
+        "Craft an engaging message that encourages the user to ask you anything."
+    )
+    
+    # Campaign Settings
+    st.subheader("Campaign Settings")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        throttle = st.number_input(
+            "Message Throttle (seconds)",
+            min_value=1,
+            value=5,
+            help="Time to wait between messages to each recipient"
+        )
+    
+    with col2:
+        delay = st.number_input(
+            "Recipient Delay (seconds)",
+            min_value=1,
+            value=5,
+            help="Time to wait between recipients"
+        )
+    
+    # Campaign Preview
+    if st.button("Preview Campaign"):
+        st.subheader("Campaign Preview")
+        
+        preview_data = {
+            'Setting': [
+                'Total Recipients',
+                'Estimated Duration',
+                'Messages per Recipient',
+                'Total Messages',
+            ],
+            'Value': [
+                len(recipients) if recipient_input else 0,
+                f"{(len(recipients) if recipient_input else 0) * (delay + 3 * throttle)} seconds",
+                3,  # Welcome + 2 follow-ups
+                (len(recipients) if recipient_input else 0) * 3
+            ]
+        }
+        
+        st.table(pd.DataFrame(preview_data))
+    
+    # Campaign History
+    st.subheader("Campaign History")
+    
+    # Sample campaign data
+    campaigns = {
+        'timestamp': [
+            datetime(2024, 1, 20, 10, 30),
+            datetime(2024, 1, 19, 15, 45)
+        ],
+        'recipients': [10, 5],
+        'success_rate': [0.9, 1.0],
+        'status': ['Completed', 'Completed']
+    }
+    
+    df = pd.DataFrame(campaigns)
+    st.dataframe(df)
+    
+    # Start Campaign
+    if st.button("Start Campaign", type="primary"):
+        if not (api_id and api_hash and phone_number and recipient_input):
+            st.error("Please fill in all required fields")
+        else:
+            with st.spinner("Starting campaign..."):
+                st.success("Campaign started successfully!")
+                st.info("Check the logs for detailed progress")
+
+if __name__ == "__main__":
+    main()
