@@ -1,0 +1,157 @@
+import streamlit as st
+import pandas as pd
+from datetime import datetime, timedelta
+import random
+
+st.set_page_config(page_title="Two Agents Warmup", page_icon="🤖")
+
+st.title("Two Agents Warmup 🤖")
+
+def main():
+    st.write("Configure and monitor conversations between two AI agents")
+    
+    # Agent Configuration
+    st.subheader("Agent Configuration")
+    
+    # Agent 1 Configuration
+    st.write("Agent 1 (Alex)")
+    col1, col2 = st.columns(2)
+    with col1:
+        phone_1 = st.text_input("Phone Number (Agent 1)", placeholder="+1234567890", key="phone1")
+        session_1 = st.text_input("Session Name (Agent 1)", "agent1_session")
+    with col2:
+        api_id_1 = st.text_input("API ID (Agent 1)", type="password", key="api1")
+        api_hash_1 = st.text_input("API Hash (Agent 1)", type="password", key="hash1")
+    
+    # Agent 2 Configuration
+    st.write("Agent 2 (Sam)")
+    col1, col2 = st.columns(2)
+    with col1:
+        phone_2 = st.text_input("Phone Number (Agent 2)", placeholder="+1234567890", key="phone2")
+        session_2 = st.text_input("Session Name (Agent 2)", "agent2_session")
+    with col2:
+        api_id_2 = st.text_input("API ID (Agent 2)", type="password", key="api2")
+        api_hash_2 = st.text_input("API Hash (Agent 2)", type="password", key="hash2")
+    
+    # Conversation Topics
+    st.subheader("Conversation Topics")
+    
+    default_topics = [
+        "the importance of AI ethics",
+        "the future of space exploration",
+        "the impact of social media on society",
+        "climate change and sustainable technologies",
+        "the role of art in the digital age"
+    ]
+    
+    topics = st.text_area(
+        "Topics (one per line)",
+        "\n".join(default_topics),
+        help="Enter conversation topics, one per line"
+    )
+    
+    topic_list = [t.strip() for t in topics.split("\n") if t.strip()]
+    
+    # Warmup Settings
+    st.subheader("Warmup Settings")
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        duration_weeks = st.number_input(
+            "Duration (weeks)",
+            min_value=1,
+            max_value=52,
+            value=3,
+            help="How long the warmup should run"
+        )
+    with col2:
+        min_hours = st.number_input(
+            "Min Hours Between Talks",
+            min_value=1,
+            max_value=24,
+            value=2
+        )
+    with col3:
+        max_hours = st.number_input(
+            "Max Hours Between Talks",
+            min_value=1,
+            max_value=24,
+            value=12
+        )
+    
+    # Conversation Preview
+    if st.button("Generate Conversation Preview"):
+        st.subheader("Conversation Preview")
+        
+        topic = random.choice(topic_list)
+        st.write(f"Topic: {topic}")
+        
+        conversation = [
+            ("Alex", "Hey Sam! I've been thinking about " + topic + ". What's your take on it?"),
+            ("Sam", "Interesting topic! Well, from what I understand about " + topic + ", there are several fascinating aspects to consider..."),
+            ("Alex", "That's a great point! I particularly find it intriguing how " + topic + " affects our daily lives."),
+        ]
+        
+        for agent, message in conversation:
+            with st.chat_message(agent.lower()):
+                st.write(f"**{agent}**: {message}")
+    
+    # Schedule Preview
+    st.subheader("Schedule Preview")
+    
+    if st.button("Generate Schedule"):
+        start_date = datetime.now()
+        end_date = start_date + timedelta(weeks=duration_weeks)
+        
+        schedule = []
+        current_date = start_date
+        
+        while current_date < end_date:
+            hours_until_next = random.randint(min_hours, max_hours)
+            current_date += timedelta(hours=hours_until_next)
+            
+            if current_date < end_date:
+                schedule.append({
+                    'timestamp': current_date,
+                    'topic': random.choice(topic_list),
+                    'duration': '10-15 minutes'
+                })
+        
+        schedule_df = pd.DataFrame(schedule)
+        st.dataframe(
+            schedule_df,
+            column_config={
+                'timestamp': 'Scheduled Time',
+                'topic': 'Topic',
+                'duration': 'Est. Duration'
+            }
+        )
+    
+    # Start Warmup
+    if st.button("Start Warmup", type="primary"):
+        required_fields = [
+            phone_1, phone_2, api_id_1, api_id_2,
+            api_hash_1, api_hash_2, topic_list
+        ]
+        
+        if not all(required_fields):
+            st.error("Please fill in all required fields")
+        else:
+            with st.spinner("Starting warmup process..."):
+                st.success("Warmup process started successfully!")
+                st.info(
+                    f"Agents will converse about {len(topic_list)} topics "
+                    f"over {duration_weeks} weeks"
+                )
+                
+                # Progress Tracking
+                progress = st.progress(0)
+                status = st.empty()
+                
+                # Simulate progress updates
+                status.text("Initializing agents...")
+                progress.progress(10)
+                status.text("Agents initialized and ready for conversation")
+
+if __name__ == "__main__":
+    main()
